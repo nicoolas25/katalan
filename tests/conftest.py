@@ -4,6 +4,7 @@ import pytest
 
 from katalan.bus import EventBus
 from katalan.events import Event, EventType
+from katalan.infractions import Infractions
 from tests.parser import Parser
 from tests.radars import Radar
 
@@ -22,6 +23,11 @@ def radar(bus: EventBus) -> Radar:
 def parser(bus: EventBus) -> Iterator[Parser]:
     with Parser(bus=bus) as parser:
         yield parser
+
+@pytest.fixture
+def infractions(bus: EventBus) -> Iterator[Infractions]:
+    with Infractions(bus=bus) as infractions:
+        yield infractions
 
 
 class EventHistory:

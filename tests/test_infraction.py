@@ -3,6 +3,7 @@ import pytest
 
 from katalan import SYSTEM_TIME_ZONE
 from katalan.events import EventType, InfractionConfirmedEvent, ParsingCompletedEvent
+from katalan.infractions import Infractions
 from tests.conftest import EventHistory
 from tests.parser import Parser
 from tests.radars import Radar
@@ -20,12 +21,14 @@ def test_considered_speed_is_10_percent_lower_than_measured_speed(
     event_history: EventHistory,
     radar: Radar,
     parser: Parser,
+    infractions: Infractions,
     maximum_speed: int,
     measured_speed: int,
     considered_speed: int,
     triggers_event: bool,
 ):
     # TODO: Make sure your sub-system is subscribed to the events of the bus (the one from conftest)
+
 
     # Configure the behaviour of the parser "agent" on the bus
     parser.on(
