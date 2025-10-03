@@ -1,20 +1,30 @@
 from datetime import datetime
+
 import pytest
 
 from katalan import SYSTEM_TIME_ZONE
+from katalan.bus import EventBus
 from katalan.events import EventType, InfractionConfirmedEvent, ParsingCompletedEvent
+from katalan.infraction_subsystem import InfractionSubsystem
 from tests.conftest import EventHistory
 from tests.parser import Parser
 from tests.radars import Radar
 
 
+@pytest.fixture(autouse=True, scope="function")
+def infraction_subsystem(bus: EventBus) -> InfractionSubsystem:
+    infraction_subsystem = InfractionSubsystem()
+    infraction_subsystem.plug_to_bus(bus=bus)
+    return infraction_subsystem
+
+
 @pytest.mark.parametrize(
     "maximum_speed,measured_speed,considered_speed,triggers_event",
     [
-        (130, 150, 135, True),   # 10% reduction
-        (90, 105, 94, True),     # 10% reduction
-        (90, 100, 90, False),    # 10% reduction
-    ]
+        (130, 150, 135, True),  # 10% reduction
+        (90, 105, 94, True),  # 10% reduction
+        (90, 100, 90, False),  # 10% reduction
+    ],
 )
 def test_considered_speed_is_10_percent_lower_than_measured_speed(
     event_history: EventHistory,
@@ -25,8 +35,6 @@ def test_considered_speed_is_10_percent_lower_than_measured_speed(
     considered_speed: int,
     triggers_event: bool,
 ):
-    # TODO: Make sure your sub-system is subscribed to the events of the bus (the one from conftest)
-
     # Configure the behaviour of the parser "agent" on the bus
     parser.on(
         raw_photo=b"photo1",
@@ -45,7 +53,6 @@ def test_considered_speed_is_10_percent_lower_than_measured_speed(
         raw_photo=b"photo1",
     )
 
-
     # Depending on the triggers_event parameter, result will be different.
 
     events = event_history.get_events(event_type=EventType.infraction_confirmed)
@@ -62,7 +69,7 @@ def test_considered_speed_is_10_percent_lower_than_measured_speed(
 @pytest.mark.parametrize(
     "parsing_result,triggers_event",
     [
-        ( # 1 plate number, high confidence, event published
+        (  # 1 plate number, high confidence, event published
             [
                 ParsingCompletedEvent.PlateNumberParsing(
                     plate_number="AB123CD",
@@ -71,7 +78,7 @@ def test_considered_speed_is_10_percent_lower_than_measured_speed(
             ],
             True,
         ),
-        ( # 1 plate number, low confidence, no event published
+        (  # 1 plate number, low confidence, no event published
             [
                 ParsingCompletedEvent.PlateNumberParsing(
                     plate_number="AB123CD",
@@ -80,7 +87,7 @@ def test_considered_speed_is_10_percent_lower_than_measured_speed(
             ],
             False,
         ),
-        ( # 2 plate numbers, high confidence, no event published
+        (  # 2 plate numbers, high confidence, no event published
             [
                 ParsingCompletedEvent.PlateNumberParsing(
                     plate_number="AB123CD",
@@ -93,7 +100,7 @@ def test_considered_speed_is_10_percent_lower_than_measured_speed(
             ],
             False,
         ),
-        ( # 2 plate numbers, very low and high confidence, event published
+        (  # 2 plate numbers, very low and high confidence, event published
             [
                 ParsingCompletedEvent.PlateNumberParsing(
                     plate_number="AB123CD",
@@ -106,7 +113,7 @@ def test_considered_speed_is_10_percent_lower_than_measured_speed(
             ],
             True,
         ),
-    ]
+    ],
 )
 def test_plate_numbers_count_and_confidence_influence_infraction_confirmed(
     event_history: EventHistory,
@@ -115,8 +122,6 @@ def test_plate_numbers_count_and_confidence_influence_infraction_confirmed(
     parsing_result: list[ParsingCompletedEvent.PlateNumberParsing],
     triggers_event: bool,
 ):
-    # TODO: Make sure your sub-system is subscribed to the events of the bus (the one from conftest)
-
     # Configure the behaviour of the parser "agent" on the bus
     parser.on(
         raw_photo=b"photo1",
@@ -144,8 +149,6 @@ def test_infraction_forward_radar_information(
     radar: Radar,
     parser: Parser,
 ):
-    # TODO: Make sure your sub-system is subscribed to the events of the bus (the one from conftest)
-
     # Configure the behaviour of the parser "agent" on the bus
     parser.on(
         raw_photo=b"photo1",
