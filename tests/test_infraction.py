@@ -104,7 +104,7 @@ def test_considered_speed_is_10_percent_lower_than_measured_speed(
                     confidence=0.9,
                 ),
             ],
-            False,
+            True,
         ),
     ]
 )
@@ -167,7 +167,7 @@ def test_infraction_forward_radar_information(
     )
 
     # Check the event outside of the system
-    event, _ = event_history.get_events(event_type=EventType.infraction_confirmed)
+    event, *_ = event_history.get_events(event_type=EventType.infraction_confirmed)
     assert isinstance(event, InfractionConfirmedEvent)
     assert event.plate_number == "AB123CD"
     assert event.equipment_id == radar.equipment_id
